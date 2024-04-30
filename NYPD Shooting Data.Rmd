@@ -1,0 +1,69 @@
+---
+title: "NYPD Shooting Data"
+author: "DBerry"
+date: "2024-04-11"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## NYPD Shooting Data Report
+
+``` {r message = FALSE}
+nypd.data <- read_csv("NYPD_Shooting_Incident_Data__Historic_.csv")
+```
+
+The table has information on the dates, times, locations, victims and perpetrators of shooting incidents in New York City as recorded by the NYPD.  
+
+To clean the data:
+``` {r}
+nypd.data <- nypd.data %>% select(2:4,6,9:16)
+```
+This removes information on exact locations and some police codes.  
+
+Breaking the data into tables by each borough:
+``` {r}
+bronx <- nypd.data %>% filter(BORO == "BRONX")
+queens <- nypd.data %>% filter(BORO == "QUEENS")
+brooklyn <- nypd.data %>% filter(BORO == "BROOKLYN")
+manhattan <- nypd.data %>% filter(BORO == "MANHATTAN")
+statenisland <- nypd.data %>% filter(BORO == "STATEN ISLAND")
+```
+
+  
+  
+Plot of total cases by borough:
+``` {r message = FALSE}
+nypd.data %>% ggplot(aes(x = BORO)) + 
+  geom_bar(aes(fill = BORO)) +
+  labs(y = "Total Incidents", x = "Borough")
+```
+
+
+Plot of frequency by time of day:
+``` {r warning = FALSE, message = FALSE}
+times <- nypd.data %>% group_by(OCCUR_TIME) %>% summarize(OCCUR_TIME)
+plot(table(times), xlab = "Time of Day", ylab = "Number of Incidents") 
+```
+  
+Plot of frequency by month of the year:  
+``` {r warning = FALSE, message = FALSE}
+months <- nypd.data %>% mutate(MONTH = month(as.Date(OCCUR_DATE,"%m/%d/%Y")))  
+plot(table(months$MONTH), xlab = "Month of the Year", ylab = "Number of Incidents")
+```
+You can see here that shooting incidents peak in the summer months.  
+
+
+# Conclusion
+
+Bias in the data:   
+  
+Some bias in the data as presented is that the crime incidents are note standardized to population. Staten Island has the lowest recorded incidents but also the lowest population for the boroughs so it is hard to tell from simple counts where crime is the worst since it should be adjusted by rate.  
+Also these just show recorded incidents. There's no guarantee this is all crime which might influence results as well. Data is always imperfect but having an idea of the blind spots in data is important.
+
+In conclusion this data set would be a good building block for further analysis but additional data would be needed for any in depth modeling to occur. It would be interesting to see, for instance, how the average income of specific precincts indicated anything about number of shooting incidents recorded. I would hypothesize that higher income would relate to lower incidents but New York is extremely dense geographically so crime might blur between precincts more easily than in other places. Given more time and data an interesting analysis could be created. 
